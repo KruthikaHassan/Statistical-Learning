@@ -1,5 +1,7 @@
 
 import csv
+import numpy as np
+import math
 
 def load_data(data_file_path):
     ''' Parse the csv file and get raw data '''
@@ -104,3 +106,48 @@ def transform_to_hot_vector(feature_name, feature_data):
         transformed_data[feature_name+'-'+str(uniq_vals[i])] = f_d
     
     return transformed_data
+
+def normalize_data(train_data, validation_data, test_data):
+
+
+    def normalize(feature_data, mean, std):
+        norm_f_data = []
+        for val in feature_data:
+            val = float(val)
+
+            norm_val = (val - mean) / std
+            norm_f_data.append(norm_val)
+        return norm_f_data
+
+    # First get mean and std for each feature from training
+    mean_std = {}
+    for feature in train_data:
+        feature_data = np.array(train_data[feature]).astype(float)
+        std_val = np.std(feature_data)
+        mean_val = np.mean(feature_data)
+
+        # See if standard deviation value makes sense? 
+        # If it's zero, that means all the values are mostly same ( = mean ? and already normalized!)
+        # And in which case, this feature will be useless for any classification. 
+        # Setting std = 1 and mean = 0, means there will be no change to values when you normalize
+        if std_val == 0:
+            std_val = 1
+            mean_val = 0
+
+        mean_std[feature]= {}
+        mean_std[feature]['mean'] = mean_val
+        mean_std[feature]['std'] = std_val
+    
+    # Now apply them to all 3 to normalize
+    for feature in train_data:
+        
+        train_feature_data = train_data[feature]
+        train_data[feature] = normalize(train_feature_data, mean_std[feature]['mean'], mean_std[feature]['std'])
+
+        validation_feature_data = validation_data[feature]
+        validation_data[feature] = normalize(validation_feature_data, mean_std[feature]['mean'], mean_std[feature]['std'])
+
+        test_feature_data = test_data[feature]
+        test_data[feature] = normalize(test_feature_data, mean_std[feature]['mean'], mean_std[feature]['std'])
+
+    return train_data, validation_data, test_data

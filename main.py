@@ -4,6 +4,7 @@
 from data_handling import *
 from lin_reg import *
 from results import *
+from lasso_regression import *
 
 def main():
     ''' Main function '''
@@ -46,21 +47,35 @@ def main():
     # Split the data into train, validation and test
     train_data, validation_data, test_data = split_data(clean_data)
 
+    # Normalize
+    # train_data, validation_data, test_data = normalize_data(train_data, test_data, validation_data)
+
     # Our target feature:
     target_feature = 'SalePrice'
+
+    
+    # Test for single feature
+    warmup_feature = ['Gr Liv Area']
+    warmup_weights = perform_lin_regression(warmup_feature, train_data, target_feature)
+    print(warmup_weights)
+    warmup_preds   = predict_target(warmup_weights, train_data, warmup_feature)
+    plot_warm_up(train_data, target_feature, warmup_feature[0], warmup_weights, warmup_preds)
+
+    
 
     # Now train using linear regression
     weights = perform_lin_regression(all_features, train_data, target_feature)
 
     # Predict from validation
-    predicted_vals = predict_target(weights, validation_data, all_features)
+    predicted_vals = predict_target(weights, test_data, all_features)
     
     # Calculate error
-    rmse = cal_rmse(predicted_vals, validation_data[target_feature])
+    rmse = cal_rmse(predicted_vals, test_data[target_feature])
     
-    print(rmse)
+    #print(rmse)
 
-
+    #lasso_regression(all_features, target_feature, train_data, validation_data, test_data)
+    lasso_with_corss_validation(all_features, target_feature, train_data, validation_data, test_data)
 
 
 main()
