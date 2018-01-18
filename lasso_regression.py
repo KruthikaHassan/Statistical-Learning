@@ -88,6 +88,15 @@ def lasso_with_corss_validation(features, target_feature, train_data, validation
     training_target = fourth_fold_targets + second_fold_targets + third_fold_targets
     (alpha_vals4, train_rmse_vals4, validation_rmse_vals4, non_zero_weights4) =run_lasso_reg(training, first_fold, training_target, first_fold_targets)
 
+
+    # test set
+    test_matrix = construct_feature_matrix(features, test_data, False).astype(float)
+    test_matrix = np.transpose(test_matrix)
+    training = np.concatenate((fourth_fold, second_fold, third_fold), axis=0)
+    training_target = fourth_fold_targets + second_fold_targets + third_fold_targets
+    (alpha_vals5, train_rmse_vals5, test_rmse_vals, non_zero_weights5) = run_lasso_reg(training, test_matrix, training_target, test_data[target_feature])
+
+
     train_rmse_vals = []
     validation_rmse_vals = []
     non_zero_weights = []
@@ -126,7 +135,7 @@ def run_lasso_reg(training, validation, training_target, validation_target):
     while l <= 500:
 
         # Init lasso 
-        alpha_factor = 1
+        alpha_factor = 0.1
         clf = linear_model.Lasso(max_iter=100000, normalize=True, alpha = l * alpha_factor)
 
         # Fit the model and get weights for train data
