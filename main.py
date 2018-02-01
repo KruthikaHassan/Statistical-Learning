@@ -4,6 +4,7 @@
 from data_handling import *
 from lin_reg import *
 from results import *
+from lasso_regression import *
 
 def main():
     ''' Main function '''
@@ -46,9 +47,29 @@ def main():
     # Split the data into train, validation and test
     train_data, validation_data, test_data = split_data(clean_data)
 
+    # Normalize
+    # train_data, validation_data, test_data = normalize_data(train_data, test_data, validation_data)
+
     # Our target feature:
     target_feature = 'SalePrice'
 
+    # Test for single feature
+    
+    warmup_feature = ['Gr Liv Area']
+    warmup_weights = perform_lin_regression(warmup_feature, train_data, target_feature)
+    print(warmup_weights)
+    warmup_preds   = predict_target(warmup_weights, train_data, warmup_feature)
+    #plot_warm_up(train_data, target_feature, warmup_feature[0], warmup_weights, warmup_preds)
+    
+    warmup_val_preds = predict_target(warmup_weights, validation_data, warmup_feature)
+    warmup_val_rmse = cal_rmse(warmup_val_preds, validation_data[target_feature])
+    print("validation RMSE %f" % warmup_val_rmse)
+
+    warmup_test_preds = predict_target(warmup_weights, test_data, warmup_feature)
+    warmup_test_rmse = cal_rmse(warmup_test_preds, test_data[target_feature])
+    print("Test RMSE %f" % warmup_test_rmse)
+    
+    
     # Now train using linear regression
     weights = perform_lin_regression(all_features, train_data, target_feature)
 
@@ -57,10 +78,14 @@ def main():
     
     # Calculate error
     rmse = cal_rmse(predicted_vals, validation_data[target_feature])
-    
     print(rmse)
 
+    predicted_vals_test = predict_target(weights, test_data, all_features)
+    rmse_test = cal_rmse(predicted_vals_test, test_data[target_feature])
+    print(rmse_test)
 
+    #lasso_regression(all_features, target_feature, train_data, validation_data, test_data)
+    lasso_with_corss_validation(all_features, target_feature, train_data, validation_data, test_data)
 
 
 main()
